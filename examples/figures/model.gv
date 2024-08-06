@@ -42,6 +42,46 @@ Normal",
 
 		];
 
+		H_area_norm	[label="H_area_norm
+
+~
+
+Gamma",
+
+			shape=ellipse];
+
+		H_amplitude	[label="H_amplitude
+
+~
+
+Deterministic",
+
+			shape=box];
+
+		He_fwhm	[label="He_fwhm
+
+~
+
+Deterministic",
+
+			shape=box];
+
+		H_center_norm	[label="H_center_norm
+
+~
+
+Normal",
+
+			shape=ellipse];
+
+		He_H_fwhm_ratio_norm	[label="He_H_fwhm_ratio_norm
+
+~
+
+Normal",
+
+			shape=ellipse];
+
 		H_fwhm	[label="H_fwhm
 
 ~
@@ -49,6 +89,14 @@ Normal",
 Deterministic",
 
 			shape=box];
+
+		yplus_norm	[label="yplus_norm
+
+~
+
+Gamma",
+
+			shape=ellipse];
 
 		He_amplitude	[label="He_amplitude
 
@@ -58,15 +106,15 @@ Deterministic",
 
 			shape=box];
 
-		He_H_fwhm_ratio	[label="He_H_fwhm_ratio
+		H_fwhm_norm	[label="H_fwhm_norm
 
 ~
 
-Deterministic",
+Gamma",
 
-			shape=box];
+			shape=ellipse];
 
-		H_center	[label="H_center
+		He_H_fwhm_ratio	[label="He_H_fwhm_ratio
 
 ~
 
@@ -90,55 +138,7 @@ Deterministic",
 
 			shape=box];
 
-		He_H_fwhm_ratio_norm	[label="He_H_fwhm_ratio_norm
-
-~
-
-Normal",
-
-			shape=ellipse];
-
-		yplus_norm	[label="yplus_norm
-
-~
-
-Gamma",
-
-			shape=ellipse];
-
-		H_amplitude	[label="H_amplitude
-
-~
-
-Deterministic",
-
-			shape=box];
-
-		H_fwhm_norm	[label="H_fwhm_norm
-
-~
-
-Gamma",
-
-			shape=ellipse];
-
-		H_area_norm	[label="H_area_norm
-
-~
-
-Gamma",
-
-			shape=ellipse];
-
-		H_center_norm	[label="H_center_norm
-
-~
-
-Normal",
-
-			shape=ellipse];
-
-		He_fwhm	[label="He_fwhm
+		H_center	[label="H_center
 
 ~
 
@@ -182,51 +182,43 @@ Normal",
 
 	observation_baseline_norm -> observation	[minlen=1];
 
+	H_area_norm -> H_area	[minlen=1];
+
+	H_amplitude -> He_amplitude;
+
+	H_amplitude -> observation;
+
+	He_fwhm -> observation;
+
+	H_center_norm -> H_center	[minlen=1];
+
+	He_H_fwhm_ratio_norm -> He_H_fwhm_ratio	[minlen=1];
+
 	H_fwhm -> H_amplitude;
 
 	H_fwhm -> He_fwhm;
 
 	H_fwhm -> observation;
 
+	yplus_norm -> yplus	[minlen=1];
+
 	He_amplitude -> observation;
 
-	He_H_fwhm_ratio -> He_amplitude;
+	H_fwhm_norm -> H_fwhm	[minlen=1];
 
 	He_H_fwhm_ratio -> He_fwhm;
 
-	H_center -> He_center;
-
-	H_center -> observation;
+	He_H_fwhm_ratio -> He_amplitude;
 
 	yplus -> He_amplitude;
 
 	H_area -> H_amplitude;
 
-	He_H_fwhm_ratio_norm -> He_H_fwhm_ratio	[minlen=1];
+	H_center -> He_center;
 
-	yplus_norm -> yplus	[minlen=1];
-
-	H_amplitude -> He_amplitude;
-
-	H_amplitude -> observation;
-
-	H_fwhm_norm -> H_fwhm	[minlen=1];
-
-	H_area_norm -> H_area	[minlen=1];
-
-	H_center_norm -> H_center	[minlen=1];
-
-	He_fwhm -> observation;
+	H_center -> observation;
 
 	He_center -> observation;
-
-	rms_observation_norm	[label="rms_observation_norm
-
-~
-
-HalfNormal",
-
-		shape=ellipse];
 
 	rms_observation	[label="rms_observation
 
@@ -236,8 +228,16 @@ Deterministic",
 
 		shape=box];
 
-	rms_observation_norm -> rms_observation	[minlen=1];
-
 	rms_observation -> observation;
+
+	rms_observation_norm	[label="rms_observation_norm
+
+~
+
+HalfNormal",
+
+		shape=ellipse];
+
+	rms_observation_norm -> rms_observation	[minlen=1];
 
 }
