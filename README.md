@@ -4,6 +4,8 @@ A Bayesian Model of Radio Recombination Line Emission
 `bayes_yplus` implements models to infer the helium abundance (`y+`) from radio recombination line (RRL) observations.
 
 - [Installation](#installation)
+  - [Basic Installation](#basic-installation)
+  - [Development Installation](#development-installation)
 - [Notes on Physics \& Radiative Transfer](#notes-on-physics--radiative-transfer)
 - [Models](#models)
   - [`YPlusModel`](#yplusmodel)
@@ -14,18 +16,22 @@ A Bayesian Model of Radio Recombination Line Emission
 
 
 # Installation
-Download and unpack the [latest release](https://github.com/tvwenger/bayes_yplus/releases/latest), or [fork the repository](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo) and contribute to the development of `bayes_yplus`!
+
+## Basic Installation
+
+Install with pip:
+```
+pip install bayes_yplus
+```
+
+## Development Installation
+
+Alternatively, download and unpack the [latest release](https://github.com/tvwenger/bayes_yplus/releases/latest), or [fork the repository](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo) and contribute to the development of `bayes_yplus`!
 
 Install in a `conda` virtual environment:
 ```
+cd /path/to/bayes_yplus
 conda env create -f environment.yml
-conda activate bayes_yplus
-pip install .
-```
-
-If you wish to contribute to `bayes_yplus`, then you may wish to install additional dependencies and install `bayes_yplus` as an "editable" package:
-```
-conda env create -f environment-dev.yml
 conda activate bayes_yplus-dev
 pip install -e .
 ```
