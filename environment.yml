@@ -8,6 +8,8 @@ dependencies:
   - jupyter_nbextensions_configurator
   - ipywidgets
   - versioneer
+  - black
+  - flake8
   - numpy
   - pymc>=5
   - pytensor
@@ -18,11 +20,10 @@ dependencies:
   - scipy
   - scikit-learn
   - graphviz
+  - jaxlib==0.4.28
   - jax==0.4.28
   - blackjax
   - numpyro
-  - black
-  - flake8
   - pip
   - pip:
     - "bayes_spec"

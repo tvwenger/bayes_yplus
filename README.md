@@ -9,7 +9,7 @@ A Bayesian Model of Radio Recombination Line Emission
 - [Notes on Physics \& Radiative Transfer](#notes-on-physics--radiative-transfer)
 - [Models](#models)
   - [`YPlusModel`](#yplusmodel)
-  - [`ordered_velocity`](#ordered_velocity)
+  - [`ordered`](#ordered)
 - [Syntax \& Examples](#syntax--examples)
 - [Issues and Contributing](#issues-and-contributing)
 - [License and Copyright](#license-and-copyright)
@@ -48,7 +48,7 @@ The models provided by `bayes_yplus` are implemented in the [`bayes_spec`](https
 
 The basic model is `YPlusModel`. The model assumes that the emission can be explained by hydrogen and helium RRL emission from discrete clouds. The following diagram demonstrates the relationship between the free parameters (empty ellipses), deterministic quantities (rectangles), model predictions (filled ellipses), and observations (filled, round rectangles). Many of the parameters are internally normalized (and thus have names like `_norm`). The subsequent tables describe the model parameters in more detail.
 
-![hfs model graph](examples/figures/model.gv.png)
+![hfs model graph](examples/yplus_model.png)
 
 | Cloud Parameter<br>`variable` | Parameter                  | Units       | Prior, where<br>($p_0, p_1, \dots$) = `prior_{variable}`                  | Default<br>`prior_{variable}` |
 | :---------------------------- | :------------------------- | :---------- | :------------------------------------------------------------------------ | :---------------------------- |
@@ -58,15 +58,16 @@ The basic model is `YPlusModel`. The model assumes that the emission can be expl
 | `He_H_fwhm_ratio`             | He/H FWHM line width ratio | ``          | $\Delta V_{\rm He}/\Delta V_{\rm H} \sim {\rm Normal}(\mu=1.0, \sigma=p)$ | `0.1`                         |
 | `yplus`                       | He abundance by number     | ``          | $y^+ \sim {\rm Gamma}(\alpha=3.0, \beta=2.0/p)$                           | `0.1`                         |
 
-| Hyper Parameter<br>`variable` | Parameter          | Units | Prior, where<br>($p_0, p_1, \dots$) = `prior_{variable}` | Default<br>`prior_{variable}` |
-| :---------------------------- | :----------------- | :---- | :------------------------------------------------------- | :---------------------------- |
-| `rms`                         | Spectral rms noise | `mK`  | ${\rm rms} \sim {\rm HalfNormal}(\sigma=p)$              | `0.01`                        |
+| Hyper Parameter<br>`variable` | Parameter                                   | Units | Prior, where<br>($p_0, p_1, \dots$) = `prior_{variable}` | Default<br>`prior_{variable}` |
+| :---------------------------- | :------------------------------------------ | :---- | :------------------------------------------------------- | :---------------------------- |
+| `rms`                         | Spectral rms noise                          | `mK`  | ${\rm rms} \sim {\rm HalfNormal}(\sigma=p)$              | `0.01`                        |
+| `baseline_coeffs`             | Normalized polynomial baseline coefficients | ``    | $\beta_i \sim {\rm Normal}(\mu=0.0, \sigma=p_i)$         | `[1.0]*baseline_degree`       |
 
-## `ordered_velocity`
+## `ordered`
 
-An additional parameter to `set_priors` for these models is `ordered_velocity`. By default, this parameter is `False`, in which case the order of the clouds is from nearest to farthest. Sampling from these models can be challenging due to the labeling degeneracy: if the order of clouds does not matter (i.e., the emission is optically thin), then each Markov chain could decide on a different, equally-valid order of clouds.
+An additional parameter to `set_priors` for these models is `velocity`. By default, this parameter is `False`, in which case the order of the clouds is arbitrary. Sampling from these models can be challenging due to the labeling degeneracy: if the order of clouds does not matter (i.e., the emission is optically thin), then each Markov chain could decide on a different, equally-valid order of clouds.
 
-If we assume that the emission is optically thin, then we can set `ordered_velocity=True`, in which case the order of clouds is restricted to be increasing with velocity. This assumption can *drastically* improve sampling efficiency. When `ordered_velocity=True`, the `velocity` prior is defined differently:
+If we assume that the emission is optically thin, then we can set `ordered=True`, in which case the order of clouds is restricted to be increasing with velocity. This assumption can *drastically* improve sampling efficiency. When `ordered=True`, the `velocity` prior is defined differently:
 
 | Cloud Parameter<br>`variable` | Parameter             | Units    | Prior, where<br>($p_0, p_1, \dots$) = `prior_{variable}`                 | Default<br>`prior_{variable}` |
 | :---------------------------- | :-------------------- | :------- | :----------------------------------------------------------------------- | :---------------------------- |
