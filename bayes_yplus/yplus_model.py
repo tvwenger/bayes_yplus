@@ -19,40 +19,15 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-Changelog:
-Trey Wenger - August 2024
 """
 
-from typing import Iterable
+from typing import Iterable, Optional
 
 import pymc as pm
-import pytensor.tensor as pt
 import numpy as np
 
 from bayes_spec import BaseModel
-
-
-def gaussian(
-    x: Iterable[float],
-    amp: Iterable[float],
-    center: Iterable[float],
-    fwhm: Iterable[float],
-):
-    """
-    Evaluate a Gaussian.
-
-    Inputs:
-        x :: 1-D array of scalars (length S)
-            Positions at which to evaluate the function
-        amp, center, fwhm :: 1-D arrays of scalars (length N)
-            Gaussian parameters
-
-    Returns:
-        gauss :: 2-D array of scalars (shape S x N)
-            Evaluated Gaussian
-    """
-    return amp * pt.exp(-4.0 * pt.log(2.0) * (x[:, None] - center) ** 2.0 / fwhm**2.0)
+from bayes_spec.utils import gaussian
 
 
 class YPlusModel(BaseModel):
@@ -61,14 +36,10 @@ class YPlusModel(BaseModel):
     """
 
     def __init__(self, *args, **kwargs):
-        """
-        Define model parameters, deterministic quantities, posterior
-        clustering features, and TeX parameter representations.
+        """Initialize a new YPlusModel instance
 
-        Inputs:
-            *args, **kwargs :: see bayes_spec.BaseModel
-
-        Returns: new HFSModel instance
+        :param `*args`: Arguments passed to :class:`BaseModel`
+        :param `**kwargs`: Keyword arguments passed to :class:`BaseModel`
         """
         # Initialize BaseModel
         super().__init__(*args, **kwargs)
@@ -131,55 +102,56 @@ class YPlusModel(BaseModel):
         prior_He_H_fwhm_ratio: float = 0.1,
         prior_yplus: float = 0.1,
         prior_rms: float = 1.0,
-        ordered_velocity: bool = False,
+        prior_baseline_coeffs: Optional[Iterable[float]] = None,
+        ordered: bool = False,
     ):
-        """
-        Add priors and deterministics to the model.
+        """Add priors and deterministics to the model
 
-        Inputs:
-            prior_H_area :: scalar (mK km s-1)
-                Prior distribution on H line area, where
-                H_area ~ Gamma(alpha=2.0, beta=1.0/prior_H_area)
-            prior_H_center :: list of two scalars (km/s)
-                If ordered_velocity=False; mean and width of H center velocity prior, where:
-                H_center ~ Normal(mu=prior_H_center[0], sigma=prior_H_center[1])
-                If ordered_velocity=True; lower limit and width of H center velocity prior, where:
-                H_center(cloud=N) ~ prior_H_center[0] + sum(H_center(cloud<N)) +
-                                    Gamma(alpha=2.0, beta=1.0/prior_H_center[1])
-                Thus, the velocities of clouds are ordered in increasing order.
-            prior_H_fwhm :: scalar (km s-1)
-                Prior distribution on H FWHM line width, where
-                H_fwhm ~ Gamma(alpha=3.0, beta=2.0/prior_H_fwhm)
-            prior_He_H_fwhm_ratio :: scalar
-                Prior distribution on He/H FWHM ratio, where
-                He_H_fwhm_ratio ~ Normal(mu=1.0, sigma=prior_He_H_fwhm_ratio)
-            prior_yplus :: scalar
-                Prior distribution on y+ (He/H line area ratio), where
-                yplus ~ Gamma(alpha=3.0, beta=2.0/prior_yplus)
-            prior_rms :: scalar (mK)
-                Prior distribution on spectral rms, where
-                rms ~ HalfNormal(sigma=prior_rms)
-            ordered_velocity :: boolean
-                If True, break the labeling degeneracy by assuming the clouds are ordered
-                from farthest to nearest by increasing velocity.
-
-        Returns: Nothing
+        :param prior_H_area: Prior distribution on H line area (mK km s-1), where
+            H_area = Gamma(alpha=2.0, beta=1.0/prior_H_area)
+            defaults to 1000.0
+        :type prior_H_area: float, optional
+        :param prior_H_center: Prior distribution on H line centroid velocity (km s-1), where
+            H_center ~ Normal(mu=prior_H_center[0], sigma=prior_H_center[1]) if :param:ordered is `False`
+            H_center(cloud=N) ~ prior_H_center[0] + sum(H_center(cloud<N)) + Gamma(alpha=2.0, beta=1.0/prior_H_center[1]) if :param:ordered is `True`
+            defaults to [0.0, 25.0]
+        :type prior_H_center: Iterable[float], optional
+        :param prior_H_fwhm: Prior distribution on H FWHM line width (km s-1), where
+            H_fwhm ~ Gamma(alpha=3.0, beta=2.0/prior_H_fwhm)
+            defaults to 20.0
+        :type prior_H_fwhm: float, optional
+        :param prior_He_H_fwhm_ratio: Prior distribution on He/H FWHM line width ratio, where
+            He_H_fwhm_ratio ~ Normal(mu=1.0, sigma=prior_He_H_fwhm_ratio)
+            defaults to 0.1
+        :type prior_He_H_fwhm_ratio: float, optional
+        :param prior_yplus: Prior distribution on y+, He/H abundance by number, where
+            yplus ~ Gamma(alpha=3.0, beta=2.0/prior_yplus)
+            defaults to 0.1
+        :type prior_yplus: float, optional
+        :param prior_rms: Prior distribution on spectral rms (mK), where
+            rms ~ HalfNormal(sigma=prior_rms)
+            defaults to 1.0
+        :type prior_rms: float, optional
+        :param prior_baseline_coeffs: Width of normal prior distribution on the normalized baseline polynomial
+            coefficients. If None, use `[1.0]*(baseline_degree+1)`, defaults to None
+        :type prior_baseline_coeff: float, optional
+        :param ordered: If True, assume ordered velocities, defaults to False
+        :type ordered: bool
         """
+        if prior_baseline_coeffs is not None:
+            prior_baseline_coeffs = {"observation": prior_baseline_coeffs}
+
         # add polynomial baseline priors
-        super().add_baseline_priors()
+        super().add_baseline_priors(prior_baseline_coeffs=prior_baseline_coeffs)
 
         with self.model:
             # H line area (mK km s-1)
             H_area_norm = pm.Gamma("H_area_norm", alpha=2.0, beta=1.0, dims="cloud")
-            H_area = pm.Deterministic(
-                "H_area", prior_H_area * H_area_norm, dims="cloud"
-            )
+            H_area = pm.Deterministic("H_area", prior_H_area * H_area_norm, dims="cloud")
 
             # H center velocity (km s-1)
-            if ordered_velocity:
-                H_center_norm = pm.Gamma(
-                    "H_center_norm", alpha=2.0, beta=1.0, dims="cloud"
-                )
+            if ordered:
+                H_center_norm = pm.Gamma("H_center_norm", alpha=2.0, beta=1.0, dims="cloud")
                 H_center_offset = prior_H_center[1] * H_center_norm
                 H_center = pm.Deterministic(
                     "H_center",
@@ -202,9 +174,7 @@ class YPlusModel(BaseModel):
 
             # H FWHM line width (km s-1)
             H_fwhm_norm = pm.Gamma("H_fwhm_norm", alpha=3.0, beta=2.0, dims="cloud")
-            H_fwhm = pm.Deterministic(
-                "H_fwhm", prior_H_fwhm * H_fwhm_norm, dims="cloud"
-            )
+            H_fwhm = pm.Deterministic("H_fwhm", prior_H_fwhm * H_fwhm_norm, dims="cloud")
 
             # He/H FWHM line width ratio
             He_H_fwhm_ratio_norm = pm.Normal(
@@ -244,9 +214,7 @@ class YPlusModel(BaseModel):
             )
 
             # He amplitude (mK)
-            _ = pm.Deterministic(
-                "He_amplitude", H_amplitude * yplus / He_H_fwhm_ratio, dims="cloud"
-            )
+            _ = pm.Deterministic("He_amplitude", H_amplitude * yplus / He_H_fwhm_ratio, dims="cloud")
 
             # He center velocity (km s-1)
             _ = pm.Deterministic("He_center", H_center - 122.15, dims="cloud")
@@ -255,21 +223,16 @@ class YPlusModel(BaseModel):
             _ = pm.Deterministic("He_fwhm", H_fwhm * He_H_fwhm_ratio, dims="cloud")
 
     def add_likelihood(self):
-        """
-        Add likelihood to the model. SpecData key must be "observation".
-
-        Inputs: Nothing
-        Returns: Nothing
-        """
+        """Add likelihood to the model. Data key must be "observation"."""
         # Predict spectrum (mK)
         predicted_H = gaussian(
-            self.data["observation"].spectral,
+            self.data["observation"].spectral[:, None],
             self.model["H_amplitude"],
             self.model["H_center"],
             self.model["H_fwhm"],
         ).sum(axis=1)
         predicted_He = gaussian(
-            self.data["observation"].spectral,
+            self.data["observation"].spectral[:, None],
             self.model["He_amplitude"],
             self.model["He_center"],
             self.model["He_fwhm"],
