@@ -1,1 +1,1 @@
-bayes_spec
+bayes_spec>=1.6.2

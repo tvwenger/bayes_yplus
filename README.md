@@ -1,4 +1,10 @@
 # bayes_yplus <!-- omit in toc -->
+
+![publish](https://github.com/tvwenger/bayes_yplus/actions/workflows/publish.yml/badge.svg)
+![tests](https://github.com/tvwenger/bayes_yplus/actions/workflows/tests.yml/badge.svg)
+[![Documentation Status](https://readthedocs.org/projects/bayes-yplus/badge/?version=latest)](https://bayes-yplus.readthedocs.io/en/latest/?badge=latest)
+[![codecov](https://codecov.io/gh/tvwenger/bayes_yplus/graph/badge.svg?token=8C0SU7JR3N)](https://codecov.io/gh/tvwenger/bayes_yplus)
+
 A Bayesian Model of Radio Recombination Line Emission
 
 `bayes_yplus` implements models to infer the helium abundance (`y+`) from radio recombination line (RRL) observations.
@@ -19,8 +25,10 @@ A Bayesian Model of Radio Recombination Line Emission
 
 ## Basic Installation
 
-Install with pip:
+Install with `pip` in a `conda` virtual environment:
 ```
+conda create --name bayes_yplus -c conda-forge pymc pip
+conda activate bayes_yplus
 pip install bayes_yplus
 ```
 
