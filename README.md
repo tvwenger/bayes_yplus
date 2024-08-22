@@ -19,8 +19,10 @@ A Bayesian Model of Radio Recombination Line Emission
 
 ## Basic Installation
 
-Install with pip:
+Install with `pip` in a `conda` virtual environment:
 ```
+conda create --name bayes_yplus -c conda-forge pymc pip
+conda activate bayes_yplus
 pip install bayes_yplus
 ```
 

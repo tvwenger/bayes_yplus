@@ -44,34 +44,6 @@ class YPlusModel(BaseModel):
         # Initialize BaseModel
         super().__init__(*args, **kwargs)
 
-        # Define (normalized) cloud free parameter names
-        self.cloud_params += [
-            "H_area_norm",
-            "H_center_norm",
-            "H_fwhm_norm",
-            "He_H_fwhm_ratio_norm",
-            "yplus_norm",
-        ]
-
-        # Define (normalized) hyper-parameter names
-        self.hyper_params += [
-            "rms_observation_norm",
-        ]
-
-        # Define deterministic quantities (including un-normalized cloud free parameters)
-        self.deterministics += [
-            "H_area",
-            "H_center",
-            "H_fwhm",
-            "He_H_fwhm_ratio",
-            "yplus",
-            "H_amplitude",
-            "He_amplitude",
-            "He_center",
-            "He_fwhm",
-            "rms_observation",
-        ]
-
         # Select features used for posterior clustering
         self._cluster_features += [
             "H_area",
