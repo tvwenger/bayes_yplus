@@ -31,7 +31,7 @@ def test_yplus_model():
     brightness = np.random.randn(1000)
     data = {"observation": SpecData(velocity, brightness, 1.0)}
     model = YPlusModel(data, 2, baseline_degree=1)
-    model.add_priors(prior_baseline_coeffs=[1.0, 1.0])
+    model.add_priors(prior_baseline_coeffs={"observation": [1.0, 1.0]}, prior_rms={"observation": 1.0})
     model.add_likelihood()
     assert model._validate()
 
