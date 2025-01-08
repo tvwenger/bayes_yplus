@@ -4,8 +4,8 @@ channels:
   - defaults
 dependencies:
   - ipython
-  - jupyter_contrib_nbextensions
-  - jupyter_nbextensions_configurator
+  - jupyter
+  - ipykernel
   - ipywidgets
   - versioneer
   - black
@@ -26,4 +26,7 @@ dependencies:
   - numpyro
   - pip
   - pip:
-    - "bayes_spec>=1.6.2"
+    - "sphinx_rtd_theme"
+    - "nbsphinx"
+    - "numpydoc"
+    - "bayes_spec>=1.7.2"

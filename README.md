@@ -14,6 +14,7 @@ A Bayesian Model of Radio Recombination Line Emission
   - [Development Installation](#development-installation)
 - [Notes on Physics \& Radiative Transfer](#notes-on-physics--radiative-transfer)
 - [Models](#models)
+  - [Model Notes](#model-notes)
   - [`YPlusModel`](#yplusmodel)
   - [`ordered`](#ordered)
 - [Syntax \& Examples](#syntax--examples)
@@ -52,30 +53,36 @@ All models in `bayes_yplus` assume the emission is optically thin. The helium RR
 
 The models provided by `bayes_yplus` are implemented in the [`bayes_spec`](https://github.com/tvwenger/bayes_spec) framework. `bayes_spec` assumes that the source of spectral line emission can be decomposed into a series of "clouds", each of which is defined by a set of model parameters. Here we define the models available in `bayes_yplus`.
 
+## Model Notes
+
+1. The `velocity` of a cloud can be challenging to identify when spectral lines are narrow and widely separated. We overcome this limitation by modeling the line profiles as a "pseudo-Voight" profile, which is a linear combination of a Gaussian and Lorentzian profile. The parameter `fwhm_L` is a latent hyper-parameter (shared among all clouds) that characterizes the width of the Lorentzian part of the line profile. When `fwhm_L` is zero, the line is perfectly Gaussian. This parameter produces line profile wings that may not be physical but nonetheless enable the optimization algorithms (i.e, MCMC) to converge more reliably and efficiently. Model solutions with `fwhm_L` much larger than the channel size should be scrutinized carefully.
+2. By default, the spectral RMS noise is not inferred, rather it is taken from the `noise` attribute of the passed `SpecData` datasets. If `prior_rms` is not None, then the spectral RMS noise of each dataset is inferred.
+
 ## `YPlusModel`
 
 The basic model is `YPlusModel`. The model assumes that the emission can be explained by hydrogen and helium RRL emission from discrete clouds. The following diagram demonstrates the relationship between the free parameters (empty ellipses), deterministic quantities (rectangles), model predictions (filled ellipses), and observations (filled, round rectangles). Many of the parameters are internally normalized (and thus have names like `_norm`). The subsequent tables describe the model parameters in more detail.
 
 ![hfs model graph](examples/yplus_model.png)
 
-| Cloud Parameter<br>`variable` | Parameter                  | Units       | Prior, where<br>($p_0, p_1, \dots$) = `prior_{variable}`                  | Default<br>`prior_{variable}` |
-| :---------------------------- | :------------------------- | :---------- | :------------------------------------------------------------------------ | :---------------------------- |
-| `H_area`                      | H RRL line area            | `mK km s-1` | $\int T_{B, \rm H} dV \sim {\rm Gamma}(\alpha=2.0, \beta=1.0/p)$          | `1000.0`                      |
-| `H_center`                    | H RRL center velocity      | `km s-1`    | $V_{\rm LSR, H} \sim {\rm Normal}(\mu=p_0, \sigma=p_1)$                   | `[0.0, 25.0]`                 |
-| `H_fwhm`                      | H RRL FWHM line width      | `km s-1`    | $\Delta V_{\rm H} \sim {\rm Gamma}(\alpha=3.0, \beta=2.0/p)$              | `20.0`                        |  |
-| `He_H_fwhm_ratio`             | He/H FWHM line width ratio | ``          | $\Delta V_{\rm He}/\Delta V_{\rm H} \sim {\rm Normal}(\mu=1.0, \sigma=p)$ | `0.1`                         |
-| `yplus`                       | He abundance by number     | ``          | $y^+ \sim {\rm Gamma}(\alpha=3.0, \beta=2.0/p)$                           | `0.1`                         |
+| Cloud Parameter<br>`variable` | Parameter                        | Units       | Prior, where<br>($p_0, p_1, \dots$) = `prior_{variable}`                   | Default<br>`prior_{variable}` |
+| :---------------------------- | :------------------------------- | :---------- | :------------------------------------------------------------------------- | :---------------------------- |
+| `H_area`                      | H RRL line area                  | `mK km s-1` | $\int T_{B, \rm H} dV \sim {\rm HalfNormal}(\sigma=p)$                     | `1000.0`                      |
+| `H_center`                    | H RRL center velocity            | `km s-1`    | $V_{\rm LSR, H} \sim {\rm Normal}(\mu=p_0, \sigma=p_1)$                    | `[0.0, 25.0]`                 |
+| `H_fwhm`                      | H RRL FWHM line width            | `km s-1`    | $\Delta V_{\rm H} \sim {\rm Gamma}(\mu=p_0, \sigma=p_1)$                   | `[25.0, 10.0]`                |  |
+| `He_H_fwhm_ratio`             | He/H FWHM line width ratio       | ``          | $\Delta V_{\rm He}/\Delta V_{\rm H} \sim {\rm Gamma}(\mu=p_0, \sigma=p_1)$ | `[1.0, 0.1]`                  |
+| `yplus`                       | He$^+/$H$^+$ abundance by number | ``          | $y^+ \sim {\rm HalfNormal}(\sigma=p)$                                      | `0.05`                        |
 
-| Hyper Parameter<br>`variable` | Parameter                                   | Units | Prior, where<br>($p_0, p_1, \dots$) = `prior_{variable}` | Default<br>`prior_{variable}` |
-| :---------------------------- | :------------------------------------------ | :---- | :------------------------------------------------------- | :---------------------------- |
-| `rms`                         | Spectral rms noise                          | `mK`  | ${\rm rms} \sim {\rm HalfNormal}(\sigma=p)$              | `0.01`                        |
-| `baseline_coeffs`             | Normalized polynomial baseline coefficients | ``    | $\beta_i \sim {\rm Normal}(\mu=0.0, \sigma=p_i)$         | `[1.0]*baseline_degree`       |
+| Hyper Parameter<br>`variable` | Parameter                                   | Units    | Prior, where<br>($p_0, p_1, \dots$) = `prior_{variable}` | Default<br>`prior_{variable}` |
+| :---------------------------- | :------------------------------------------ | :------- | :------------------------------------------------------- | :---------------------------- |
+| `fwhm_L`                      | Lorentzian FWHM line width                  | `km s-1` | $\Delta V_{L} \sim {\rm HalfNormal}(\sigma=p)$           | `1.0`                         |
+| `rms`                         | Spectral rms noise                          | `mK`     | ${\rm rms} \sim {\rm HalfNormal}(\sigma=p)$              | `0.01`                        |
+| `baseline_coeffs`             | Normalized polynomial baseline coefficients | ``       | $\beta_i \sim {\rm Normal}(\mu=0.0, \sigma=p_i)$         | `[1.0]*(baseline_degree + 1)` |
 
 ## `ordered`
 
-An additional parameter to `set_priors` for these models is `velocity`. By default, this parameter is `False`, in which case the order of the clouds is arbitrary. Sampling from these models can be challenging due to the labeling degeneracy: if the order of clouds does not matter (i.e., the emission is optically thin), then each Markov chain could decide on a different, equally-valid order of clouds.
+An additional parameter to `set_priors` for these models is `ordered`. By default, this parameter is `False`, in which case the order of the clouds is arbitrary. Sampling from these models can be challenging due to the labeling degeneracy: if the order of clouds does not matter (i.e., the emission is optically thin), then each Markov chain could decide on a different, equally-valid order of clouds.
 
-If we assume that the emission is optically thin, then we can set `ordered=True`, in which case the order of clouds is restricted to be increasing with velocity. This assumption can *drastically* improve sampling efficiency. When `ordered=True`, the `velocity` prior is defined differently:
+If we assume that the emission is optically thin, then we can set `ordered=True`, in which case the order of clouds is restricted to be increasing with velocity. When `ordered=True`, the `velocity` prior is defined differently:
 
 | Cloud Parameter<br>`variable` | Parameter             | Units    | Prior, where<br>($p_0, p_1, \dots$) = `prior_{variable}`                 | Default<br>`prior_{variable}` |
 | :---------------------------- | :-------------------- | :------- | :----------------------------------------------------------------------- | :---------------------------- |
@@ -92,19 +99,6 @@ of this software via [Github](https://github.com/tvwenger/bayes_yplus).
 
 # License and Copyright
 
-Copyright (c) 2024 Trey Wenger
+Copyright(C) 2024-2025 by Trey V. Wenger
 
-GNU General Public License v3 (GNU GPLv3)
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published
-by the Free Software Foundation, either version 3 of the License,
-or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+This code is licensed under MIT license (see LICENSE for details)
