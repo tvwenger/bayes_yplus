@@ -16,13 +16,16 @@ author = "Trey V. Wenger"
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = ["sphinx.ext.autodoc", "sphinx_rtd_theme", "nbsphinx"]
+extensions = ["sphinx.ext.autodoc", "sphinx_rtd_theme", "nbsphinx", "numpydoc"]
 
 templates_path = ["_templates"]
 exclude_patterns = []
 
 # add root dir to path
 sys.path.insert(0, os.path.abspath("../../"))
+
+# gobble class members toctree
+numpydoc_class_members_toctree = False
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
