@@ -48,7 +48,6 @@ class YPlusModel(BaseModel):
                 "H_fwhm": r"$\Delta V_{\rm H}$ (km s$^{-1}$)",
                 "He_H_fwhm_ratio": r"$\Delta V_{\rm He}/\Delta V_{\rm H}$",
                 "yplus": r"$y^+$",
-                "fwhm_L": r"$\Delta V_L$ (km s$^{-1}$)",
                 "H_amplitude": r"$T_{L,\rm H}$",
                 "He_amplitude": r"$T_{L,\rm He}$",
                 "He_center": r"$V_{\rm LSR, He}$ (km s$^{-1}$)",
@@ -64,7 +63,6 @@ class YPlusModel(BaseModel):
         prior_H_fwhm: Iterable[float] = [25.0, 10.0],
         prior_He_H_fwhm_ratio: Iterable[float] = [1.0, 0.1],
         prior_yplus: float = 0.05,
-        prior_fwhm_L: float = 50.0,
         prior_rms: Optional[dict[str, float]] = None,
         prior_baseline_coeffs: Optional[dict[str, Iterable[float]]] = None,
         ordered: bool = False,
@@ -88,10 +86,6 @@ class YPlusModel(BaseModel):
         prior_yplus : float, optional
             Prior distribution on y+, by default 0.05, where
             yplus ~ HalfNormal(sigma=prior_yplus)
-        prior_fwhm_L : float, optional
-            Prior distribution on the pseudo-Voight Lorentzian profile line width (km/s),
-            by default 50.0, where
-            fwhm_L ~ HalfNormal(sigma=prior_fwhm_L)
         prior_rms : Optional[dict[str, float]], optional
             Prior distribution on spectral rms (K), by default None, where
             rms ~ HalfNormal(sigma=prior)
@@ -149,10 +143,6 @@ class YPlusModel(BaseModel):
             yplus_norm = pm.HalfNormal("yplus_norm", sigma=1.0, dims="cloud")
             yplus = pm.Deterministic("yplus", prior_yplus * yplus_norm, dims="cloud")
 
-            # Pseudo-Voigt profile latent variable (km/s)
-            fwhm_L_norm = pm.HalfNormal("fwhm_L_norm", sigma=1.0)
-            _ = pm.Deterministic("fwhm_L", prior_fwhm_L * fwhm_L_norm)
-
             # Spectral rms (K)
             if prior_rms is not None:
                 for label in self.data.keys():
@@ -186,12 +176,8 @@ class YPlusModel(BaseModel):
         # Predict all spectra
         for label, dataset in self.data.items():
             # Evaluate line profiles
-            H_profile = utils.calc_pseudo_voigt(
-                dataset.spectral, self.model["H_center"], self.model["H_fwhm"], self.model["fwhm_L"]
-            )
-            He_profile = utils.calc_pseudo_voigt(
-                dataset.spectral, self.model["He_center"], self.model["He_fwhm"], self.model["fwhm_L"]
-            )
+            H_profile = utils.gaussian(dataset.spectral[:, None], self.model["H_center"], self.model["H_fwhm"])
+            He_profile = utils.gaussian(dataset.spectral[:, None], self.model["He_center"], self.model["He_fwhm"])
 
             # Evaluate spectrum
             H_spectrum = self.model["H_area"][None, :] * H_profile
