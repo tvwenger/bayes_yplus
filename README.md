@@ -55,8 +55,7 @@ The models provided by `bayes_yplus` are implemented in the [`bayes_spec`](https
 
 ## Model Notes
 
-1. The `velocity` of a cloud can be challenging to identify when spectral lines are narrow and widely separated. We overcome this limitation by modeling the line profiles as a "pseudo-Voight" profile, which is a linear combination of a Gaussian and Lorentzian profile. The parameter `fwhm_L` is a latent hyper-parameter (shared among all clouds) that characterizes the width of the Lorentzian part of the line profile. When `fwhm_L` is zero, the line is perfectly Gaussian. This parameter produces line profile wings that may not be physical but nonetheless enable the optimization algorithms (i.e, MCMC) to converge more reliably and efficiently. Model solutions with `fwhm_L` much larger than the channel size should be scrutinized carefully.
-2. By default, the spectral RMS noise is not inferred, rather it is taken from the `noise` attribute of the passed `SpecData` datasets. If `prior_rms` is not None, then the spectral RMS noise of each dataset is inferred.
+1. By default, the spectral RMS noise is not inferred, rather it is taken from the `noise` attribute of the passed `SpecData` datasets. If `prior_rms` is not None, then the spectral RMS noise of each dataset is inferred.
 
 ## `YPlusModel`
 
@@ -72,11 +71,10 @@ The basic model is `YPlusModel`. The model assumes that the emission can be expl
 | `He_H_fwhm_ratio`             | He/H FWHM line width ratio       | ``          | $\Delta V_{\rm He}/\Delta V_{\rm H} \sim {\rm Gamma}(\mu=p_0, \sigma=p_1)$ | `[1.0, 0.1]`                  |
 | `yplus`                       | He$^+/$H$^+$ abundance by number | ``          | $y^+ \sim {\rm HalfNormal}(\sigma=p)$                                      | `0.05`                        |
 
-| Hyper Parameter<br>`variable` | Parameter                                   | Units    | Prior, where<br>($p_0, p_1, \dots$) = `prior_{variable}` | Default<br>`prior_{variable}` |
-| :---------------------------- | :------------------------------------------ | :------- | :------------------------------------------------------- | :---------------------------- |
-| `fwhm_L`                      | Lorentzian FWHM line width                  | `km s-1` | $\Delta V_{L} \sim {\rm HalfNormal}(\sigma=p)$           | `1.0`                         |
-| `rms`                         | Spectral rms noise                          | `mK`     | ${\rm rms} \sim {\rm HalfNormal}(\sigma=p)$              | `0.01`                        |
-| `baseline_coeffs`             | Normalized polynomial baseline coefficients | ``       | $\beta_i \sim {\rm Normal}(\mu=0.0, \sigma=p_i)$         | `[1.0]*(baseline_degree + 1)` |
+| Hyper Parameter<br>`variable` | Parameter                                   | Units | Prior, where<br>($p_0, p_1, \dots$) = `prior_{variable}` | Default<br>`prior_{variable}` |
+| :---------------------------- | :------------------------------------------ | :---- | :------------------------------------------------------- | :---------------------------- |
+| `rms`                         | Spectral rms noise                          | `mK`  | ${\rm rms} \sim {\rm HalfNormal}(\sigma=p)$              | `0.01`                        |
+| `baseline_coeffs`             | Normalized polynomial baseline coefficients | ``    | $\beta_i \sim {\rm Normal}(\mu=0.0, \sigma=p_i)$         | `[1.0]*(baseline_degree + 1)` |
 
 ## `ordered`
 
